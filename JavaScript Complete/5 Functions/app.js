@@ -10,19 +10,19 @@ const RESULT_COMPUTER_WINS = "COMPUTER_WINS";
 
 let gameIsRunning = false;
 
-const getPlayerChoice = function () {
+const getPlayerChoice = () => {
   const selection = prompt(
     `${ROCK}, ${PAPER}, or ${SCISSORS}?`,
     ""
   ).toUpperCase();
   if (selection !== ROCK && selection !== PAPER && selection !== SCISSORS) {
     alert(`Invalid choice! ${ROCK} choice selected by default.`);
-    return DEFAULT_USER_CHOICE;
+    return;
   }
   return selection;
 };
 
-const getComputerChoice = function () {
+const getComputerChoice = () => {
   const randomValue = Math.random();
   if (randomValue < 0.34) {
     return ROCK;
@@ -33,7 +33,7 @@ const getComputerChoice = function () {
   }
 };
 
-const getWinner = (computerChoice, playerChoice) =>
+const getWinner = (computerChoice, playerChoice = DEFAULT_USER_CHOICE) =>
   computerChoice === playerChoice
     ? RESULT_DRAW
     : (computerChoice === ROCK && playerChoice === PAPER) ||
@@ -55,19 +55,64 @@ const getWinner = (computerChoice, playerChoice) =>
 // }
 // };
 
-startGameBtn.addEventListener("click", function () {
+startGameBtn.addEventListener("click", () => {
   if (gameIsRunning) {
     return;
   }
   gameIsRunning = true;
   console.log("Starting game...", "Fetching user configuration");
-  const playerSelection = getPlayerChoice();
+  const playerChoice = getPlayerChoice();
   const computerChoice = getComputerChoice();
-  let winner = getWinner(computerChoice, playerSelection);
-  console.log("Computer choice:", computerChoice);
-  console.log("Player choice:", playerSelection);
-  console.log("Winner:", winner);
+  let winner;
+  if (playerChoice) {
+    winner = getWinner(computerChoice, playerChoice);
+  } else {
+    winner = getWinner(computerChoice);
+  }
+  let message = `You picked ${
+    playerChoice || DEFAULT_USER_CHOICE
+  } and computer picked ${computerChoice}. You `;
+
+  if (winner === RESULT_DRAW) {
+    message = message + "had a draw.";
+  } else if (winner === RESULT_PLAYER_WINS) {
+    message = message + "won.";
+  } else {
+    message = message + "lost.";
+  }
+  alert(message);
+  gameIsRunning = false;
 });
 
+const combine = (operation, ...numbers) => {
+  const validateNumber = (number) => {
+    return isNaN(number) ? 0 : number;
+  };
 
-6 11
+  let sum = 0;
+  for (const num of numbers) {
+    if (operation === "ADD") {
+      sum += validateNumber(num);
+    } else if (operation === "SUBTRACT") {
+      sum -= validateNumber(num);
+    }
+  }
+  return sum;
+};
+
+const subtractUp = (...numbers) => {
+  let sum = 0;
+  for (const num of numbers) {
+    sum -= num;
+  }
+  return sum;
+};
+
+const showResult = (result, messageText) => {
+  alert(messageText + " " + result);
+};
+
+showResult(
+  combine("ADD", 1, 2, 3, 4, 5),
+  "The result after adding all numbers is "
+);
