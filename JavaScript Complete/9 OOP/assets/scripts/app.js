@@ -20,10 +20,14 @@ class ElementAttribute {
 }
 
 class Component {
-  constructor(renderHookId) {
-    // console.log("CREATING A NEW COMPONENT");
+  constructor(renderHookId, shouldRender = true) {
     this.hookId = renderHookId;
+    if (shouldRender) {
+      this.render();
+    }
   }
+
+  render() {}
 
   createRootElement(tag, cssClasses, attributes) {
     const rootElement = document.createElement(tag);
@@ -59,7 +63,12 @@ class ShoppingCart extends Component {
   }
 
   constructor(renderHookId) {
-    super(renderHookId);
+    super(renderHookId, false);
+    this.orderProducts = () => {
+      console.log("Ordering...");
+      console.log(this.items);
+    };
+    this.render();
   }
 
   addProduct(product) {
@@ -74,13 +83,18 @@ class ShoppingCart extends Component {
     <h2>Total: \$${0}</h2>
     <button>Order Now</button>
     `;
+    const orderButton = cartEl.querySelector("button");
+    // orderButton.addEventListener("click", () => this.orderProducts());
+    orderButton.addEventListener("click", this.orderProducts.bind(this));
     this.totalOutput = cartEl.querySelector("h2");
   }
 }
 
 class ProductItem extends Component {
-  constructor(product) {
+  constructor(product, renderHookId) {
+    super(renderHookId, false);
     this.product = product;
+    this.render();
   }
 
   addToCart() {
@@ -107,46 +121,58 @@ class ProductItem extends Component {
   }
 }
 
-class ProductList {
-  products = [
-    new Product(
-      "A Pillow",
-      "https://linensociety.com/cdn/shop/products/heirloom-pillow_14294b09-8232-4d5d-a305-022b802669ab.jpg?v=1584402804&width=1400",
-      "Soft and comfy!",
-      19.99
-    ),
-    new Product(
-      "A Carpet",
-      "https://www.artcarpet.com/dosyalar/files/desenler/7-24/0737A-P%C4%B0NK-GREY-7.jpg",
-      "Warm and cozy!",
-      89.99
-    ),
-  ];
+class ProductList extends Component {
+  #products = [];
 
-  constructor() {}
+  constructor(renderHookId) {
+    super(renderHookId, false);
+    this.render();
+    this.#fetchProducts();
+  }
+
+  #fetchProducts() {
+    this.#products = [
+      new Product(
+        "A Pillow",
+        "https://linensociety.com/cdn/shop/products/heirloom-pillow_14294b09-8232-4d5d-a305-022b802669ab.jpg?v=1584402804&width=1400",
+        "Soft and comfy!",
+        19.99
+      ),
+      new Product(
+        "A Carpet",
+        "https://www.artcarpet.com/dosyalar/files/desenler/7-24/0737A-P%C4%B0NK-GREY-7.jpg",
+        "Warm and cozy!",
+        89.99
+      ),
+    ];
+    this.renderProducts();
+  }
+
+  renderProducts() {
+    for (const prod of this.#products) {
+      new ProductItem(prod, "prod-list");
+    }
+  }
 
   render() {
-    const prodList = document.createElement("ul");
-    prodList.className = "product-list";
-    for (const prod of this.products) {
-      const productItem = new ProductItem(prod);
-      const prodEl = productItem.render();
-      prodList.append(prodEl);
+    this.createRootElement("ul", "product-list", [
+      new ElementAttribute("id", "prod-list"),
+    ]);
+    if (this.#products && this.#products.length > 0) {
+      this.renderProducts();
     }
-    return prodList;
   }
 }
 
-class Shop {
+class Shop extends Component {
+  constructor() {
+    super();
+  }
+
   render() {
-    const renderHook = document.getElementById("app");
-
     this.cart = new ShoppingCart("app");
-    this.cart.render();
-    const productList = new ProductList();
-    const prodListEl = productList.render();
-
-    renderHook.append(prodListEl);
+    const list = new ProductList("app");
+    // console.log(list.#products);
   }
 }
 
@@ -155,8 +181,6 @@ class App {
 
   static init() {
     const shop = new Shop();
-
-    shop.render();
     this.cart = shop.cart;
   }
 
